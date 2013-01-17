@@ -19,11 +19,12 @@ package com.arcanix.eventuality;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import com.arcanix.eventuality.utils.ReflectionUtils;
 
@@ -32,22 +33,22 @@ import com.arcanix.eventuality.utils.ReflectionUtils;
  */
 public final class EventDispatcher {
 
-	private interface Default {
+	public interface Default {
 		
 		// default event group to use when no one is specified
 	}
 	
 	private static final EventValidator EVENT_VALIDATOR = new EventValidator();
 	
-	private final EventListenerInstantiator eventListenerInstantiator;
-	private final Set<Class<?>> declaredEvents = new HashSet<>();
-	private final Map<Class<?>, Map<Class<?>, List<EventDescriptor<?>>>> eventListeners = new HashMap<>();
+	private final Instantiator eventListenerInstantiator;
+	private final CopyOnWriteArraySet<Class<?>> declaredEvents = new CopyOnWriteArraySet<>();
+	private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<Class<?>, CopyOnWriteArrayList<EventDescriptor<?>>>> listeners = new ConcurrentHashMap<>();
 	
 	public EventDispatcher() {
-		this(new DefaultEventListenerInstantiator());
+		this(new DefaultInstantiator());
 	}
 	
-	public EventDispatcher(final EventListenerInstantiator eventListenerInstantiator) {
+	public EventDispatcher(final Instantiator eventListenerInstantiator) {
 		if (eventListenerInstantiator == null) {
 			throw new IllegalArgumentException("Event listener instantiator cannot be null");
 		}
@@ -61,6 +62,10 @@ public final class EventDispatcher {
 		this.declaredEvents.add(validateEvent(event));
 	}
 	
+	public void suppress(final Class<?> event) {
+		this.declaredEvents.remove(event);
+	}
+	
 	public <T> void addListener(final Class<T> event, final Class<? extends T> listener) {
 		addListener(event, listener, EventDefaultScope.INSTANCE);
 	}
@@ -70,6 +75,9 @@ public final class EventDispatcher {
 	}
 	
 	public <T> void addListener(final Class<T> event, final Class<? extends T> listener, final EventScope eventScope, Class<?> group) {
+		if (!isDeclared(event)) {
+			throw new EventNotDeclaredException(event);
+		}
 		Set<Class<? extends T>> eventClasses = new HashSet<>();
 		eventClasses.add(listener);
 		EventDescriptor<T> eventDescriptor = new EventDescriptor<T>(eventClasses, new EventListenerProvider<T>() {
@@ -92,16 +100,26 @@ public final class EventDispatcher {
 		}
 
 		for (Class<?> event : eventDescriptor.getEventClasses()) {
-			Map<Class<?>, List<EventDescriptor<?>>> eventsByType = this.eventListeners.get(event);
+			ConcurrentHashMap<Class<?>, CopyOnWriteArrayList<EventDescriptor<?>>> eventsByType =
+					this.listeners.get(event);
+			
 			if (eventsByType == null) {
-				eventsByType = new HashMap<>();
-				this.eventListeners.put(event,  eventsByType);
+				ConcurrentHashMap<Class<?>, CopyOnWriteArrayList<EventDescriptor<?>>> newEventsByType =
+						new ConcurrentHashMap<>();
+						
+				eventsByType = this.listeners.putIfAbsent(event,  newEventsByType);
+				if (eventsByType == null) {
+					eventsByType = newEventsByType;
+				}
 			}
 	
-			List<EventDescriptor<?>> eventsByGroup = eventsByType.get(group);
+			CopyOnWriteArrayList<EventDescriptor<?>> eventsByGroup = eventsByType.get(group);
 			if (eventsByGroup == null) {
-				eventsByGroup = new ArrayList<>();
-				eventsByType.put(group, eventsByGroup);
+				CopyOnWriteArrayList<EventDescriptor<?>> newEventsByGroup = new CopyOnWriteArrayList<>();
+				eventsByGroup = eventsByType.putIfAbsent(group, newEventsByGroup);
+				if (eventsByGroup == null) {
+					eventsByGroup = newEventsByGroup;
+				}
 			}
 			eventsByGroup.add(eventDescriptor);
 		}
@@ -113,6 +131,10 @@ public final class EventDispatcher {
 	
 	@SuppressWarnings("unchecked")
 	public <T> void addListener(final Class<T> event, final T listener, final Class<?> group) {
+		if (!isDeclared(event)) {
+			throw new EventNotDeclaredException(event);
+		}
+		
 		Set<Class<? extends T>> eventClasses = new HashSet<>();
 		eventClasses.add((Class<? extends T>) listener.getClass());
 		
@@ -212,12 +234,17 @@ public final class EventDispatcher {
 			throw new EventNotDeclaredException(event);
 		}
 
-		Map<Class<?>, List<EventDescriptor<?>>> eventsByType = this.eventListeners.get(event);
-		List<EventDescriptor<?>> eventsByGroup = Collections.EMPTY_LIST;
+		ConcurrentHashMap<Class<?>, CopyOnWriteArrayList<EventDescriptor<?>>> eventsByType =
+				this.listeners.get(event);
+		
+		List<EventDescriptor<?>> eventsByGroup = null;
+		
 		if (eventsByType != null) {
-			if (eventsByType.containsKey(group)) {
-				eventsByGroup = eventsByType.get(group);
-			}
+			eventsByGroup = eventsByType.get(group);
+		}
+		
+		if (eventsByGroup == null) {
+			eventsByGroup = Collections.EMPTY_LIST;
 		}
 		
 		List<EventListenerProvider<T>> providers = new ArrayList<>();
