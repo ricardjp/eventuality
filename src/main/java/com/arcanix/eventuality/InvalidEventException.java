@@ -61,7 +61,7 @@ public class InvalidEventException extends RuntimeException {
 	}
 	
 	@Override
-	public String getMessage() {
+	public final String getMessage() {
 		return this.message;
 	}
 	

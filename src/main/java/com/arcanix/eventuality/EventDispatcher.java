@@ -42,7 +42,8 @@ public final class EventDispatcher {
 	
 	private final Instantiator eventListenerInstantiator;
 	private final CopyOnWriteArraySet<Class<?>> declaredEvents = new CopyOnWriteArraySet<>();
-	private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<Class<?>, CopyOnWriteArrayList<EventDescriptor<?>>>> listeners = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<Class<?>,
+		CopyOnWriteArrayList<EventDescriptor<?>>>> listeners = new ConcurrentHashMap<>();
 	
 	public EventDispatcher() {
 		this(new DefaultInstantiator());
@@ -74,7 +75,12 @@ public final class EventDispatcher {
 		addListener(event, listener, eventScope, Default.class);
 	}
 	
-	public <T> void addListener(final Class<T> event, final Class<? extends T> listener, final EventScope eventScope, Class<?> group) {
+	public <T> void addListener(
+			final Class<T> event,
+			final Class<? extends T> listener,
+			final EventScope eventScope,
+			final Class<?> group) {
+		
 		if (!isDeclared(event)) {
 			throw new EventNotDeclaredException(event);
 		}
@@ -165,7 +171,6 @@ public final class EventDispatcher {
 		
 		Set<Class<? extends T>> eventClasses = new HashSet<>();
 		
-		
 		for (Class<?> declaredInterface : ReflectionUtils.getAllInterfaces(subscriber.getClass())) {
 			if (isDeclared(declaredInterface)) {
 				eventClasses.add((Class<T>) declaredInterface);
@@ -182,7 +187,6 @@ public final class EventDispatcher {
 		});
 		
 		addListenerInternal(eventDescriptor, group);
-		
 	}
 	
 	public <T> void addSubscriber(final Class<T> subscriber) {

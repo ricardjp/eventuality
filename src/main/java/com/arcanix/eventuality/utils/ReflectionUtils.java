@@ -70,6 +70,8 @@ public final class ReflectionUtils {
 	 */
 	private static final class MethodSignature {
 		
+		private static final int HASHCODE_MULTIPLIER = 31;
+		
 		private String name;
 		private Class<?>[] parameterTypes;
 		
@@ -93,7 +95,7 @@ public final class ReflectionUtils {
 		public int hashCode() {
 			int hash = this.name.hashCode();
 			for (Class<?> parameterType : this.parameterTypes) {
-				hash = hash * 31 + parameterType.hashCode();
+				hash = hash * HASHCODE_MULTIPLIER + parameterType.hashCode();
 			}
 			return hash;
 		}

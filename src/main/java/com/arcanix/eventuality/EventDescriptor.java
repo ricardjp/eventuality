@@ -25,6 +25,8 @@ import java.util.Set;
  */
 public final class EventDescriptor<T> {
 
+	private static final int HASHCODE_MULTIPLIER = 31;
+	
 	private final Set<Class<? extends T>> eventClasses;
 	private final EventScope eventScope;
 	private final EventListenerProvider<T> unscoped;
@@ -73,6 +75,15 @@ public final class EventDescriptor<T> {
 		final EventDescriptor<?> otherCasted = (EventDescriptor<?>) other;
 		return this.eventClasses.equals(otherCasted.getEventClasses())
 				&& this.eventScope.equals(otherCasted.getEventScope());
+	}
+	
+	@Override
+	public int hashCode() {
+		int hash = this.eventScope.hashCode();
+		for (Class<?> eventClass : this.eventClasses) {
+			hash = hash * HASHCODE_MULTIPLIER + eventClass.hashCode();
+		}
+		return hash;
 	}
 	
 }

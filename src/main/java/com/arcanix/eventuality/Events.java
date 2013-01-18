@@ -1,16 +1,14 @@
 package com.arcanix.eventuality;
 
-import com.arcanix.eventuality.EventDispatcherTest.ThreadStartEvent;
-import com.arcanix.eventuality.EventDispatcherTest.ThreadSubscriber;
 import com.arcanix.eventuality.internal.EventBindingType;
 import com.arcanix.eventuality.internal.EventBuilder;
 import com.arcanix.eventuality.internal.EventCollector;
 import com.arcanix.eventuality.internal.EventType;
 import com.arcanix.eventuality.internal.GroupBuilder;
-import com.arcanix.eventuality.internal.InstanceBuilder;
-import com.arcanix.eventuality.internal.ListenerBuilder;
 import com.arcanix.eventuality.internal.GroupBuilderImpl;
+import com.arcanix.eventuality.internal.InstanceBuilder;
 import com.arcanix.eventuality.internal.InstanceBuilderImpl;
+import com.arcanix.eventuality.internal.ListenerBuilder;
 import com.arcanix.eventuality.internal.ListenerBuilderImpl;
 
 /**
@@ -27,6 +25,10 @@ public final class Events {
 		this.collector = collector;
 	}
 	
+	public void declare(final Class<?> event) {
+		this.collector.addEvent(event);
+	}
+	
 	public <T> ListenerBuilder<T> on(final Class<T> event) {
 		if (event == null) {
 			throw new IllegalArgumentException("Event cannot be null");
@@ -38,7 +40,7 @@ public final class Events {
 		return new ListenerBuilderImpl<>(builder);
 	}
 	
-	public <T> GroupBuilder<T> subscribe(Class<T> subscriber) {
+	public <T> GroupBuilder<T> subscribe(final Class<T> subscriber) {
 		if (subscriber == null) {
 			throw new IllegalArgumentException("Subscriber cannot be null");
 		}

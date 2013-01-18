@@ -25,13 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
-
-import com.arcanix.eventuality.EventDescriptor;
-import com.arcanix.eventuality.EventDispatcher;
-import com.arcanix.eventuality.EventListenerProvider;
-import com.arcanix.eventuality.EventScope;
 
 /**
  * @author ricardjp@arcanix.com (Jean-Philippe Ricard)
