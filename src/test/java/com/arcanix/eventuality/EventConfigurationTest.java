@@ -5,6 +5,8 @@ import org.junit.Test;
 import com.arcanix.eventuality.EventDispatcherTest.ThreadStartEvent;
 import com.arcanix.eventuality.EventDispatcherTest.ThreadStopEvent;
 import com.arcanix.eventuality.EventDispatcherTest.ThreadSubscriber;
+import com.arcanix.eventuality.conf.AbstractEventualityUnit;
+import com.arcanix.eventuality.conf.EventualityUnit;
 
 // TODO MOCK the dispatcher
 /**
@@ -18,7 +20,7 @@ public final class EventConfigurationTest {
 	@Test
 	public void testConfiguration() {
 		
-		EventualityModule module = new AbstractEventualityModule() {
+		EventualityUnit module = new AbstractEventualityUnit() {
 			
 			@Override
 			protected void configure() {

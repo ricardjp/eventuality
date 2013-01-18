@@ -85,7 +85,7 @@ public final class EventDispatcher {
 			throw new EventNotDeclaredException(event);
 		}
 		Set<Class<? extends T>> eventClasses = new HashSet<>();
-		eventClasses.add(listener);
+		eventClasses.add(event);
 		EventDescriptor<T> eventDescriptor = new EventDescriptor<T>(eventClasses, new EventListenerProvider<T>() {
 			
 			@Override
@@ -113,7 +113,7 @@ public final class EventDispatcher {
 				ConcurrentHashMap<Class<?>, CopyOnWriteArrayList<EventDescriptor<?>>> newEventsByType =
 						new ConcurrentHashMap<>();
 						
-				eventsByType = this.listeners.putIfAbsent(event,  newEventsByType);
+				eventsByType = this.listeners.putIfAbsent(event, newEventsByType);
 				if (eventsByType == null) {
 					eventsByType = newEventsByType;
 				}

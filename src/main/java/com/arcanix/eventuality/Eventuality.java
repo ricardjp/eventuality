@@ -1,5 +1,6 @@
 package com.arcanix.eventuality;
 
+import com.arcanix.eventuality.conf.EventualityUnit;
 import com.arcanix.eventuality.internal.EventCollector;
 
 /**
@@ -14,10 +15,10 @@ public final class Eventuality {
 		throw new AssertionError("Singleton. Can't instantiate");
 	}
 	
-	public static EventDispatcher createEventDispatcher(final EventualityModule... modules) {
+	public static EventDispatcher createEventDispatcher(final EventualityUnit... modules) {
 		EventCollector eventCollector = new EventCollector();
 		Events events = new Events(eventCollector);
-		for (EventualityModule eventualityModule : modules) {
+		for (EventualityUnit eventualityModule : modules) {
 			eventualityModule.configure(events);
 		}
 		EventDispatcher eventDispatcher = new EventDispatcher();
