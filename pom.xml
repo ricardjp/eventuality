@@ -8,8 +8,8 @@
     <name>Eventuality</name>
 
     <scm>
-        <connection>scm:git:ssh://git@github.com:/ricardjp/eventuality</connection>
-        <developerConnection>scm:git:ssh://git@github.com:/ricardjp/eventuality</developerConnection>
+        <connection>https://github.com/ricardjp/eventuality.git</connection>
+        <developerConnection>https://github.com/ricardjp/eventuality.git</developerConnection>
         <url>https://github.com/ricardjp/eventuality</url>
     </scm>
 
